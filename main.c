@@ -94,6 +94,7 @@ int main(int argc, char** argv){
   printf("Task started!\n");
 
   // DAQmx Read Code -- i.e: take samples
+  // The samples are written interleaved with the GroupByScanNumber
   DAQmxErrChk(DAQmxReadAnalogF64(taskHandle, SAMPLES_PER_CHANNEL, 
                                  SAMPLES_WAIT_TIMEOUT_SECS, 
                                  DAQmx_Val_GroupByScanNumber,
