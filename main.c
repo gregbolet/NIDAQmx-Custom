@@ -115,8 +115,8 @@ Error:
 
     printf("We read [%d] samples for each channel\n", samples_read_per_channel);
 
+    // Print out the data we collected on differences across the paired pins
     int i,j;
-    // Need a way to get the number of channels
     for(i = 0; i < ARRAY_SIZE_IN_SAMPLES; i+=NUM_CHANNEL_PAIRS){
       printf("Sample %05d: [", i/NUM_CHANNEL_PAIRS);
       for(j = 0; j < NUM_CHANNEL_PAIRS-1; j++){
