@@ -19,12 +19,12 @@
 // with their complementary pins 8, 9, 10, and 11
 // which are automatically read by the NIDAQ library
 // when we are in differential mode
-#define DIFF_LINES_BEGIN "0"
-#define DIFF_LINES_END   "3"
+#define DIFF_INPUTS_BEGIN "0"
+#define DIFF_INPUTS_END   "3"
 
 // We'll pass this into the CreateAIVoltageChan to specify
 // the channels we want to work with. 
-#define DIFF_CHANNELS DAQ_DEVICE "/ai" DIFF_LINES_BEGIN ":" DIFF_LINES_END 
+#define DIFF_CHANNELS DAQ_DEVICE "/ai" DIFF_INPUTS_BEGIN ":" DIFF_INPUTS_END 
 #define PHYS_CHANNELS DIFF_CHANNELS
 
 // The name assigned to our task
@@ -40,13 +40,13 @@
 #define MAX_VOLTS  10.0
 
 // Number of samples to collect each second for each channel
-#define SAMPLES_PER_SEC 1000
+#define SAMPLES_PER_SEC 2
 
 // The number of samples we want to take for each channel
-#define SAMPLES_PER_CHANNEL 1000
+#define SAMPLES_PER_CHANNEL 10
 
 // The amount of time to wait to read the samples
-#define SAMPLES_WAIT_TIMEOUT_SECS 10
+#define SAMPLES_WAIT_TIMEOUT_SECS 100
 
 // The number of differential channel pairs we will read from
 #define NUM_CHANNEL_PAIRS 4
@@ -114,6 +114,7 @@ Error:
     DAQmxClearTask(taskHandle);
 
     printf("We read [%d] samples for each channel\n", samples_read_per_channel);
+    printf("We took [%d] samples per second\n", SAMPLES_PER_SEC);
 
     // Print out the data we collected on differences across the paired pins
     int i,j;
