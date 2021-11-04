@@ -1,0 +1,9 @@
+
+# Ignore everything
+*
+
+# Keep the following files
+!.gitignore
+!Makefile
+!main.c
+
