@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <NIDAQmx.h>
 
@@ -40,11 +41,11 @@
 #define MAX_VOLTS  10.0
 
 // Number of samples to collect each second for each channel
-#define SAMPLES_PER_SEC 10
+//#define SAMPLES_PER_SEC 1000
 
 // The number of samples we want to take for each channel
 //#define SAMPLES_PER_CHANNEL 16000
-#define SAMPLES_PER_CHANNEL 200
+//#define SAMPLES_PER_CHANNEL 30000
 
 // The amount of time to wait to read the samples
 #define SAMPLES_WAIT_TIMEOUT_SECS 100
@@ -68,6 +69,16 @@ int main(int argc, char** argv){
   //printf("Starting tests of NIDAQ unit...\n");
   //printf("Using device: [%s]\n", DAQ_DEVICE);
   //printf("Using channels: [%s]\n", PHYS_CHANNELS);
+
+  if(argc != 3){
+    printf("Invalid input argument count. Given %d, Expected %d\n", argc-1, 2);
+    printf("Usage: ./main [SAMPLES_PER_SECOND] [SAMPLING_TIME_IN_SECONDS]\n");
+    exit(-1);
+  }
+
+  int SAMPLES_PER_SEC = atoi(argv[1]);
+  int SAMPLING_SECS = atoi(argv[2]);
+  int SAMPLES_PER_CHANNEL = SAMPLING_SECS*SAMPLES_PER_SEC;
 
   int32       error = 0;
   TaskHandle  taskHandle = 0;
