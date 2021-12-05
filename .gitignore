@@ -6,4 +6,5 @@
 !.gitignore
 !Makefile
 !main.c
+!calibrate.c
 
