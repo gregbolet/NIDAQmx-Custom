@@ -44,14 +44,14 @@
 
 // The number of samples we want to take for each channel
 //#define SAMPLES_PER_CHANNEL 16000
-#define SAMPLES_PER_CHANNEL 600
+#define SAMPLES_PER_CHANNEL 200
 
 // The amount of time to wait to read the samples
 #define SAMPLES_WAIT_TIMEOUT_SECS 100
 
 // The number of differential channel pairs we will read from
 //#define NUM_CHANNEL_PAIRS 4
-#define NUM_CHANNEL_PAIRS 8
+#define NUM_CHANNEL_PAIRS 4
 
 // The number of samples we expect to collect
 #define ARRAY_SIZE_IN_SAMPLES NUM_CHANNEL_PAIRS*SAMPLES_PER_CHANNEL
@@ -83,12 +83,12 @@ int main(int argc, char** argv){
 
   // Start in differential mode
   DAQmxErrChk(DAQmxCreateAIVoltageChan(taskHandle, 
-                                       //PHYS_CHANNELS, 
-                                       "cDAQ1Mod3/ai0:3, cDAQ1Mod3/ai8:11",
+                                       PHYS_CHANNELS, 
+                                       //"cDAQ1Mod3/ai0:3, cDAQ1Mod3/ai8:11",
                                        CHANNEL_NAME, 
-                                       //DAQmx_Val_Diff, 
+                                       DAQmx_Val_Diff, 
                                        //DAQmx_Val_NRSE,
-                                       DAQmx_Val_RSE,
+                                       //DAQmx_Val_RSE,
                                        MIN_VOLTS, MAX_VOLTS, 
                                        DAQmx_Val_Volts, NULL));
 
@@ -104,9 +104,6 @@ int main(int argc, char** argv){
 
   // DAQmx Start Code
   DAQmxErrChk(DAQmxStartTask(taskHandle));
-
-  // Fork off into a child process
-  
 
   //printf("Task started!\n");
 
@@ -137,16 +134,29 @@ Error:
     // Print out the data we collected on differences across the paired pins
 
     float64 power;
+    float64 time;
     int i,j;
+
+    // Print the header of the csv
+    printf("time, ");
+    for(i = 0; i < NUM_CHANNEL_PAIRS-1; i++){
+      printf("line%d, ",i);
+    }
+    printf("line%d\n",i);
+
+    // Print the data
     for(i = 0; i < ARRAY_SIZE_IN_SAMPLES; i+=NUM_CHANNEL_PAIRS){
+      time = (float)i/(NUM_CHANNEL_PAIRS*SAMPLES_PER_SEC);
+      printf("%2.6f, ", time);
       //printf("Sample %07d: [", i/NUM_CHANNEL_PAIRS);
       for(j = 0; j < NUM_CHANNEL_PAIRS-1; j++){
-        //power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
-        power = data[i+j];
+        //power = (data[i+j]/RESISTOR_OHMS)*(LINE_VOLTAGE - data[i+j]);
+        power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
+        //power = (data[i+j]/RESISTOR_OHMS)*data[i+j];
+        //power = data[i+j];
         printf("%2.6f, ", power);
       }
-      //power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
-      power = data[i+j];
+      power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
       //printf("%2.6f]\n", power);
       printf("%2.6f\n", power);
     }

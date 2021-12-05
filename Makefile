@@ -15,4 +15,5 @@ calibrate : calibrate.c
 
 .PHONY: clean
 clean:
-	rm -rf main	
+	rm -f main	
+	rm -f calibrate
