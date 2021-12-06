@@ -1,8 +1,9 @@
 #!/bin/bash
 
 SAMPLES_PER_SEC=5
-SAMPLING_TIME_IN_SECS=30
-OUTPUT_FILE=testout.csv
+SAMPLING_TIME_IN_SECS=15
+START_BENCH_DELAY_SECS=5
+OUTPUT_FILE=testout1.csv
 
 echo "Starting Demo! Writing to file: ${OUTPUT_FILE}"
 
@@ -11,8 +12,8 @@ echo "Starting Demo! Writing to file: ${OUTPUT_FILE}"
 
 waitpid=$!
 
-# Wait 10 seconds and run the benchmark
-sleep 10
+# Wait some seconds and run the benchmark
+sleep $START_BENCH_DELAY_SECS
 ./NPB/SNU_NPB_2019/NPB3.3-OMP-C/bin/ft.B.x
 
 echo "FT Benchmark Complete!"
