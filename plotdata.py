@@ -34,7 +34,7 @@ ax.set_xlabel('Time (seconds)')
 
 ax.legend()
 
-plt.show()
+plt.savefig('allLines.jpg')
 
 x = df['time']
 y = df['mean']
@@ -57,5 +57,5 @@ ax.set_title('CPU Lines -- Mean Power Consumption Over Time')
 ax.set_ylabel('Mean Power (watts) From All Lines')
 ax.set_xlabel('Time (seconds)')
 
-plt.savefig('image.jpg')
+plt.savefig('meanLines.jpg')
 #plt.show()

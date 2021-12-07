@@ -32,6 +32,7 @@ echo "Generating image..."
 
 python3 ./plotdata.py
 
-xdg-open image.jpg
+xdg-open allLines.jpg
+xdg-open meanLines.jpg
 
 echo "Demo complete!"
