@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <NIDAQmx.h>
 
@@ -40,26 +41,44 @@
 #define MAX_VOLTS  10.0
 
 // Number of samples to collect each second for each channel
-#define SAMPLES_PER_SEC 2
+//#define SAMPLES_PER_SEC 1000
 
 // The number of samples we want to take for each channel
-#define SAMPLES_PER_CHANNEL 10
+//#define SAMPLES_PER_CHANNEL 16000
+//#define SAMPLES_PER_CHANNEL 30000
 
 // The amount of time to wait to read the samples
 #define SAMPLES_WAIT_TIMEOUT_SECS 100
 
 // The number of differential channel pairs we will read from
+//#define NUM_CHANNEL_PAIRS 4
 #define NUM_CHANNEL_PAIRS 4
 
 // The number of samples we expect to collect
 #define ARRAY_SIZE_IN_SAMPLES NUM_CHANNEL_PAIRS*SAMPLES_PER_CHANNEL
 
+// The resistance of the resister that we measure the voltage diff over
+#define RESISTOR_OHMS 0.003
+
+// The voltage we assume that all the lines are running at
+#define LINE_VOLTAGE 12
+
 
 int main(int argc, char** argv){
 
-  printf("Starting tests of NIDAQ unit...\n");
-  printf("Using device: [%s]\n", DAQ_DEVICE);
-  printf("Using channels: [%s]\n", PHYS_CHANNELS);
+  //printf("Starting tests of NIDAQ unit...\n");
+  //printf("Using device: [%s]\n", DAQ_DEVICE);
+  //printf("Using channels: [%s]\n", PHYS_CHANNELS);
+
+  if(argc != 3){
+    printf("Invalid input argument count. Given %d, Expected %d\n", argc-1, 2);
+    printf("Usage: ./main [SAMPLES_PER_SECOND] [SAMPLING_TIME_IN_SECONDS]\n");
+    exit(-1);
+  }
+
+  int SAMPLES_PER_SEC = atoi(argv[1]);
+  int SAMPLING_SECS = atoi(argv[2]);
+  int SAMPLES_PER_CHANNEL = SAMPLING_SECS*SAMPLES_PER_SEC;
 
   int32       error = 0;
   TaskHandle  taskHandle = 0;
@@ -67,31 +86,37 @@ int main(int argc, char** argv){
   float64     data[ARRAY_SIZE_IN_SAMPLES];
   char        errBuff[2048]={'\0'};
 
-  printf("Starting task creation!\n");
+  //printf("Starting task creation!\n");
 
   DAQmxErrChk (DAQmxCreateTask(DAQ_TASK_NAME, &taskHandle));
 
-  printf("Task created!\n");
+  //printf("Task created!\n");
 
   // Start in differential mode
-  DAQmxErrChk(DAQmxCreateAIVoltageChan(taskHandle, PHYS_CHANNELS, CHANNEL_NAME, 
-                                       DAQmx_Val_Diff, MIN_VOLTS, MAX_VOLTS, 
+  DAQmxErrChk(DAQmxCreateAIVoltageChan(taskHandle, 
+                                       PHYS_CHANNELS, 
+                                       //"cDAQ1Mod3/ai0:3, cDAQ1Mod3/ai8:11",
+                                       CHANNEL_NAME, 
+                                       DAQmx_Val_Diff, 
+                                       //DAQmx_Val_NRSE,
+                                       //DAQmx_Val_RSE,
+                                       MIN_VOLTS, MAX_VOLTS, 
                                        DAQmx_Val_Volts, NULL));
 
-  printf("Voltage Chan created!\n");
+  //printf("Voltage Chan created!\n");
 
   // Setup the sample clock and the rate at which we collect samples
-  DAQmxErrChk(DAQmxCfgSampClkTiming(taskHandle, "", SAMPLES_PER_SEC, 
+  DAQmxErrChk(DAQmxCfgSampClkTiming(taskHandle, NULL, SAMPLES_PER_SEC, 
                                     DAQmx_Val_Rising, 
                                     DAQmx_Val_FiniteSamps, 
                                     SAMPLES_PER_CHANNEL ));
 
-  printf("Sampling rate set!\n");
+  //printf("Sampling rate set!\n");
 
   // DAQmx Start Code
   DAQmxErrChk(DAQmxStartTask(taskHandle));
 
-  printf("Task started!\n");
+  //printf("Task started!\n");
 
   // DAQmx Read Code -- i.e: take samples
   // The samples are written interleaved with the GroupByScanNumber
@@ -109,29 +134,48 @@ Error:
     DAQmxGetExtendedErrorInfo(errBuff,2048);
   }
   if( taskHandle != 0 )  {
-    printf("NIDAQ testing complete!\n");
+    //printf("NIDAQ testing complete!\n");
 
     DAQmxStopTask(taskHandle);
     DAQmxClearTask(taskHandle);
 
-    printf("We read [%d] samples for each channel\n", samples_read_per_channel);
-    printf("We took [%d] samples per second\n", SAMPLES_PER_SEC);
+    //printf("We read [%d] samples for each channel\n", samples_read_per_channel);
+    //printf("We took [%d] samples per second\n", SAMPLES_PER_SEC);
 
     // Print out the data we collected on differences across the paired pins
+
+    float64 power;
+    float64 time;
     int i,j;
+
+    // Print the header of the csv
+    printf("time, ");
+    for(i = 0; i < NUM_CHANNEL_PAIRS-1; i++){
+      printf("line%d, ",i);
+    }
+    printf("line%d\n",i);
+
+    // Print the data
     for(i = 0; i < ARRAY_SIZE_IN_SAMPLES; i+=NUM_CHANNEL_PAIRS){
-      printf("Sample %05d: [", i/NUM_CHANNEL_PAIRS);
+      time = (float)i/(NUM_CHANNEL_PAIRS*SAMPLES_PER_SEC);
+      printf("%2.6f, ", time);
+      //printf("Sample %07d: [", i/NUM_CHANNEL_PAIRS);
       for(j = 0; j < NUM_CHANNEL_PAIRS-1; j++){
-        printf("%2.6f, ", data[i+j]);
+        //power = (data[i+j]/RESISTOR_OHMS)*(LINE_VOLTAGE - data[i+j]);
+        power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
+        //power = (data[i+j]/RESISTOR_OHMS)*data[i+j];
+        //power = data[i+j];
+        printf("%2.6f, ", power);
       }
-      printf("%2.6f]\n", data[i+j]);
+      power = (data[i+j]/RESISTOR_OHMS)*LINE_VOLTAGE;
+      //printf("%2.6f]\n", power);
+      printf("%2.6f\n", power);
     }
   }
   if( DAQmxFailed(error) ){
     printf("DAQmx Error: %s\n",errBuff);
     return 0;
   }
-
 
   return 0;
 }
